@@ -1,6 +1,6 @@
 "use client";
 // add the payment btn in user sides
-export default function PayButton({ amount, title, description }) {
+export default function PayButton({ amount, serviceId, bookingId, title, description }) {
     const loadRazorpay = () => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
@@ -24,7 +24,7 @@ export default function PayButton({ amount, title, description }) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ amount }),
+                body: JSON.stringify({ serviceId, bookingId }),
             });
 
             const order = await orderRes.json();

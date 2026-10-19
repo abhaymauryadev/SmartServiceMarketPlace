@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
-  const body = await req.json();
-
-  // Simulated payment success
-  return NextResponse.json({
-    success: true,
-    paymentId: "PAY_" + Date.now(),
-    amount: body.amount,
-  });
+// Disabled: the old stub always reported success. Use /api/create-order and /api/verify-payment.
+export async function POST() {
+  return NextResponse.json({ message: "Not implemented" }, { status: 501 });
 }

@@ -100,6 +100,7 @@ export default async function ServiceDetailsPage({ params }) {
 
             <PayButton
               amount={service.price}
+              serviceId={service._id?.toString() || service.id}
               title={service.title}
               description={service.description}
             />

@@ -27,32 +27,35 @@ export async function PATCH(req, { params }) {
             return NextResponse.json({ message: "Booking not found" }, { status: 404 });
         }
 
-        // Ensure only the provider can update the status (or the user can cancel)
-        if (booking.provider.toString() !== session.user.id && status !== "cancelled") {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-        }
+        const isProvider = booking.provider.toString() === session.user.id;
+        const isCustomer = booking.user.toString() === session.user.id;
 
-        if (status === "cancelled" && booking.user.toString() !== session.user.id) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        // Providers manage the booking; the customer may only cancel
+        const allowed = status === "cancelled" ? isCustomer : isProvider;
+        if (!allowed) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
         booking.status = status;
         await booking.save();
 
-        // Notify User
+        // Notify the other party
         try {
-            const title = status === "accepted" ? "Booking Accepted" : "Booking Rejected";
-            const message = status === "accepted"
-                ? `Your booking for "${booking.service?.title}" has been accepted by the provider.`
-                : `Your booking for "${booking.service?.title}" has been rejected.`;
+            const serviceTitle = booking.service?.title;
+            const copy = {
+                accepted: ["Booking Accepted", `Your booking for "${serviceTitle}" has been accepted by the provider.`, "✅"],
+                rejected: ["Booking Rejected", `Your booking for "${serviceTitle}" has been rejected.`, "❌"],
+                completed: ["Booking Completed", `Your booking for "${serviceTitle}" has been marked as completed.`, "🎉"],
+                cancelled: ["Booking Cancelled", `A booking for "${serviceTitle}" has been cancelled by the customer.`, "🚫"],
+            }[status];
 
             await createNotification({
-                user: booking.user,
-                title,
-                message,
+                user: status === "cancelled" ? booking.provider : booking.user,
+                title: copy[0],
+                message: copy[1],
                 type: "booking",
-                actionUrl: "/dashboard/user/bookings",
-                icon: status === "accepted" ? "✅" : "❌"
+                actionUrl: status === "cancelled" ? "/dashboard/provider/bookings" : "/dashboard/user/bookings",
+                icon: copy[2],
             });
         } catch (notifError) {
             console.error("Failed to send notification:", notifError);

@@ -9,7 +9,12 @@ export async function POST(req) {
         const { name, email, password, role } = body;
 
         // Input validation
-        if (!name || !email || !password) {
+        if (
+            typeof name !== "string" ||
+            typeof email !== "string" ||
+            typeof password !== "string" ||
+            !name || !email || !password
+        ) {
             return NextResponse.json(
                 { message: "Name, email, and password are required" },
                 { status: 400 }
@@ -52,7 +57,7 @@ export async function POST(req) {
             name: name.trim(),
             email: email.toLowerCase().trim(),
             password: hashedPassword,
-            role: role || "user",
+            role: role === "provider" ? "provider" : "user",
         });
 
         // Remove password from response
@@ -88,7 +93,7 @@ export async function POST(req) {
 
         // Generic error
         return NextResponse.json(
-            { message: error.message || "Registration failed" },
+            { message: "Registration failed" },
             { status: 500 }
         );
     }
