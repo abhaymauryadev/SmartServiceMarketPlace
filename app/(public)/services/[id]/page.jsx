@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Service from "@/models/Service";
 import Image from "next/image";
-import PayButton from "@/components/common/PayButton";
+import Link from "next/link";
 
 async function getService(id) {
   try {
@@ -98,12 +98,12 @@ export default async function ServiceDetailsPage({ params }) {
               </div>
             </div>
 
-            <PayButton
-              amount={service.price}
-              serviceId={service._id?.toString() || service.id}
-              title={service.title}
-              description={service.description}
-            />
+            <Link
+              href={`/dashboard/user/bookings?service=${service._id.toString()}`}
+              className="block w-full py-4 text-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200"
+            >
+              Book Now (₹{service.price})
+            </Link>
           </div>
         </div>
       </div>

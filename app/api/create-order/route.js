@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import Service from "@/models/Service";
 import Booking from "@/models/Booking";
 
 export async function POST(req) {
@@ -13,31 +12,23 @@ export async function POST(req) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { serviceId, bookingId } = await req.json();
+        const { bookingId } = await req.json();
         await connectDB();
 
-        // The amount is always derived server-side
-        let amount;
-        const notes = { userId: session.user.id };
-
-        if (bookingId) {
-            const booking = await Booking.findById(bookingId);
-            if (!booking || booking.user.toString() !== session.user.id) {
-                return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-            }
-            if (booking.paymentStatus === "paid") {
-                return NextResponse.json({ error: "Booking already paid" }, { status: 400 });
-            }
-            amount = booking.totalAmount;
-            notes.bookingId = booking._id.toString();
-        } else {
-            const service = await Service.findById(serviceId);
-            if (!service || !service.isActive) {
-                return NextResponse.json({ error: "Service not found" }, { status: 404 });
-            }
-            amount = service.price;
-            notes.serviceId = service._id.toString();
+        // The amount is always derived server-side from the booking
+        const booking = bookingId ? await Booking.findById(bookingId) : null;
+        if (!booking || booking.user.toString() !== session.user.id) {
+            return NextResponse.json({ error: "Booking not found" }, { status: 404 });
         }
+        if (booking.paymentStatus === "paid") {
+            return NextResponse.json({ error: "Booking already paid" }, { status: 400 });
+        }
+        if (["rejected", "cancelled"].includes(booking.status)) {
+            return NextResponse.json({ error: "Booking is no longer payable" }, { status: 400 });
+        }
+
+        const amount = booking.totalAmount;
+        const notes = { userId: session.user.id, bookingId: booking._id.toString() };
 
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,

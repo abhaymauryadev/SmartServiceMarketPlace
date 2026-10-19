@@ -3,12 +3,16 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-export default function BookingForm({ services, user }) {
+export default function BookingForm({ services, user, initialServiceId }) {
     const router = useRouter();
 
     // State
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedServiceId, setSelectedServiceId] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState(
+        () => services.find((s) => s._id === initialServiceId)?.category || ""
+    );
+    const [selectedServiceId, setSelectedServiceId] = useState(
+        () => (services.some((s) => s._id === initialServiceId) ? initialServiceId : "")
+    );
     const [description, setDescription] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTimeSlot, setSelectedTimeSlot] = useState("");

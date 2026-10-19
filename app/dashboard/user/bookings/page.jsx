@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Booking from "@/models/Booking";
 import Service from "@/models/Service";
 import BookingForm from "./BookingForm";
+import PayButton from "@/components/common/PayButton";
 
 async function getBookings(userId) {
   try {
@@ -64,7 +65,8 @@ async function getServices() {
   }
 }
 
-export default async function UserBookingsPage() {
+export default async function UserBookingsPage({ searchParams }) {
+  const { service: initialServiceId } = await searchParams;
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -107,6 +109,7 @@ export default async function UserBookingsPage() {
                       Date: {b.bookingDate ? new Date(b.bookingDate).toLocaleDateString() : "N/A"}
                     </p>
                   </div>
+                  <div className="flex flex-col items-end gap-2">
                   <span className={`text-xs px-3 py-1 rounded-full ${b.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                       b.status === 'accepted' ? 'bg-blue-100 text-blue-700' :
                         b.status === 'completed' ? 'bg-green-100 text-green-700' :
@@ -114,6 +117,17 @@ export default async function UserBookingsPage() {
                     }`}>
                     {b.status}
                   </span>
+                  {b.paymentStatus === "paid" ? (
+                    <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700">paid</span>
+                  ) : !["rejected", "cancelled"].includes(b.status) && (
+                    <PayButton
+                      bookingId={b._id}
+                      amount={b.totalAmount}
+                      title={b.service?.title}
+                      className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                    />
+                  )}
+                  </div>
                 </div>
               </li>
             ))}
@@ -122,7 +136,7 @@ export default async function UserBookingsPage() {
       </div>
 
       {/* Booking Form */}
-      <BookingForm services={services} user={session.user} />
+      <BookingForm services={services} user={session.user} initialServiceId={initialServiceId} />
     </div>
   );
 }

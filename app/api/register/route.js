@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db.js";
 import User from "@/models/User.js";
+import { rateLimit, getClientIp } from "@/lib/rateLimit.js";
 
 export async function POST(req) {
+    const rl = rateLimit(`register:${getClientIp(req)}`, { limit: 5, windowMs: 60 * 60_000 });
+    if (!rl.ok) {
+        return NextResponse.json(
+            { message: "Too many attempts. Try again later." },
+            { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+        );
+    }
+
     try {
         const body = await req.json();
         const { name, email, password, role } = body;

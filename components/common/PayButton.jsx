@@ -1,6 +1,8 @@
 "use client";
+import { useRouter } from "next/navigation";
 // add the payment btn in user sides
-export default function PayButton({ amount, serviceId, bookingId, title, description }) {
+export default function PayButton({ amount, bookingId, title, description, label, className }) {
+    const router = useRouter();
     const loadRazorpay = () => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
@@ -24,7 +26,7 @@ export default function PayButton({ amount, serviceId, bookingId, title, descrip
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ serviceId, bookingId }),
+                body: JSON.stringify({ bookingId }),
             });
 
             const order = await orderRes.json();
@@ -58,6 +60,7 @@ export default function PayButton({ amount, serviceId, bookingId, title, descrip
 
                     if (verifyData.success) {
                         alert("Payment Successful");
+                        router.refresh();
                     } else {
                         alert("Payment Verification Failed");
                     }
@@ -83,9 +86,9 @@ export default function PayButton({ amount, serviceId, bookingId, title, descrip
     return (
         <button
             onClick={handlePayment}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200"
+            className={className || "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200"}
         >
-            Book Now (₹{amount})
+            {label || `Pay Now (₹${amount})`}
         </button>
     );
 }

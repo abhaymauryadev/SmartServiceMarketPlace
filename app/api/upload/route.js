@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { rateLimit } from "@/lib/rateLimit";
 import cloudinary from "@/lib/cloudinary";
 
 const MAX_SIZE = 5 * 1024 * 1024;
@@ -11,6 +12,14 @@ export async function POST(req) {
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const rl = rateLimit(`upload:${session.user.id}`, { limit: 20, windowMs: 60_000 });
+        if (!rl.ok) {
+            return NextResponse.json(
+                { message: "Too many uploads. Try again shortly." },
+                { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+            );
         }
 
         const data = await req.formData();

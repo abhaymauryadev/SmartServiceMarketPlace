@@ -26,7 +26,7 @@ export default function useSocket() {
   }, []);
 
   const joinBookingRoom = (bookingId) => {
-    socketRef.current?.emit("join-booking", bookingId);
+    socketRef.current?.emit("join", bookingId);
   };
 
   const onBookingStatus = (callback) => {
