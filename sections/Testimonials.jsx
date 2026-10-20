@@ -16,40 +16,42 @@ const row2 = [
   { text: "Highly recommended.", name: "Amit", role: "Startup Owner" },
 ];
 
+// Each half of the track must be wider than the viewport, so repeat the items;
+// the track holds two identical halves and slides by exactly one half (-50%).
+const half = (items) => Array.from({ length: 3 }, () => items).flat();
+
 export default function Testimonials() {
   const topRef = useRef(null);
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    gsap.to(topRef.current, {
-      xPercent: -50,
-      duration: 25,
-      repeat: -1,
-      ease: "linear",
+    const ctx = gsap.context(() => {
+      // Top row moves left, bottom row moves right
+      gsap.fromTo(
+        topRef.current,
+        { xPercent: 0 },
+        { xPercent: -50, duration: 80, repeat: -1, ease: "none" }
+      );
+      gsap.fromTo(
+        bottomRef.current,
+        { xPercent: -50 },
+        { xPercent: 0, duration: 80, repeat: -1, ease: "none" }
+      );
     });
 
-    // Animate bottom row in the opposite direction from the top row
-    gsap.to(bottomRef.current, {
-      xPercent: -50,
-      duration: 25,
-      repeat: -1,
-      ease: "linear",
-    });
+    return () => ctx.revert();
   }, []);
 
   return (
-    <section className="py-32  bg-overflow-hidden text-black bg-gray-200">
+    <section className="py-32 overflow-hidden text-black bg-gray-200">
       <h2 className="text-4xl font-bold text-center mb-20">
         Testimonials
       </h2>
 
       {/* ROW 1 */}
       <div className="overflow-hidden">
-        <div
-          ref={topRef}
-          className="flex gap-6 w-max mx-auto"
-        >
-          {[...row1, ...row1].map((t, i) => (
+        <div ref={topRef} className="flex w-max">
+          {[...half(row1), ...half(row1)].map((t, i) => (
             <Card key={i} {...t} />
           ))}
         </div>
@@ -57,11 +59,8 @@ export default function Testimonials() {
 
       {/* ROW 2 */}
       <div className="overflow-hidden mt-12">
-        <div
-          ref={bottomRef}
-          className="flex gap-6 w-max mx-auto"
-        >
-          {[...row2, ...row2].map((t, i) => (
+        <div ref={bottomRef} className="flex w-max">
+          {[...half(row2), ...half(row2)].map((t, i) => (
             <Card key={i} {...t} />
           ))}
         </div>
@@ -72,7 +71,7 @@ export default function Testimonials() {
 
 function Card({ text, name, role }) {
   return (
-    <div className="min-w-[320px] rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm">
+    <div className="min-w-[320px] mr-6 shrink-0 rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm">
       <p className="text-gray-700 mb-6 text-[15px] leading-relaxed">
         “{text}”
       </p>

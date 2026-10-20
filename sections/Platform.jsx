@@ -83,26 +83,42 @@ export default function Platform() {
 ];
 
   useEffect(() => {
-    sectionsRef.current.forEach((trigger, i) => {
-      const image = imagesRef.current[i];
-      if (!image || !trigger) return;
+    // Only run on md+ where the sticky image layer is visible
+    const mm = gsap.matchMedia();
 
-      gsap.fromTo(
-        image,
-        { clipPath: "inset(0 0 0 0)" },
-        {
-          clipPath: "inset(0 0 100% 0)",
-          ease: "none",
-          scrollTrigger: {
-            trigger: trigger,
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-            // markers: true,
-          },
-        }
-      );
+    mm.add("(min-width: 768px)", () => {
+      sectionsRef.current.forEach((trigger, i) => {
+        const image = imagesRef.current[i];
+        // The last image stays put and scrolls away with the section
+        if (!image || !trigger || i === data.length - 1) return;
+
+        gsap.fromTo(
+          image,
+          { clipPath: "inset(0 0 0% 0)" },
+          {
+            clipPath: "inset(0 0 100% 0)",
+            ease: "none",
+            scrollTrigger: {
+              trigger,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          }
+        );
+      });
     });
+
+    // Recalculate positions once images/fonts have loaded
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("load", refresh);
+
+    return () => {
+      window.removeEventListener("load", refresh);
+      mm.revert();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -136,7 +152,7 @@ export default function Platform() {
             {/* Mobile inline image (hidden on md and up) */}
             <div className="md:hidden w-full mt-6">
               <div className="relative w-full h-64 rounded-2xl overflow-hidden">
-                <Image src={item.img} alt={item.title} fill className="object-cover" />
+                <Image src={item.img} alt={item.title} fill sizes="(max-width: 768px) 100vw, 40vw" className="object-cover" />
               </div>
             </div>
           </section>
@@ -157,7 +173,9 @@ export default function Platform() {
                 src={item.img}
                 alt={item.title}
                 fill
+                sizes="(min-width: 1024px) 600px, 40vw"
                 className="object-cover rounded-3xl"
+                loading="eager"
                 priority={i === 0}
               />
             </div>

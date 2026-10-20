@@ -5,20 +5,20 @@ import gsap from "gsap";
 
 const faqs = [
   {
-    q: "What is this product used for?",
-    a: "It helps teams streamline workflows, improve usability, and ship faster with confidence.",
+    q: "How do I book a service?",
+    a: "Browse the services, pick one, choose a date and time slot, and confirm your booking. The provider will accept or reject it, and you will be notified either way.",
   },
   {
-    q: "Is this suitable for small teams?",
-    a: "Yes. It works equally well for solo founders, startups, and large organizations.",
+    q: "How do payments work?",
+    a: "Once your booking is created you can pay securely online with Razorpay. The amount is always the price set by the provider.",
   },
   {
-    q: "Does it support modern frameworks?",
-    a: "Absolutely. It is designed to integrate seamlessly with modern frontend stacks.",
+    q: "Can I cancel a booking?",
+    a: "Yes. You can cancel a booking from your dashboard, and the provider is notified straight away.",
   },
   {
-    q: "Is customer support available?",
-    a: "Yes, we provide fast and reliable support to help you succeed.",
+    q: "How do I become a provider?",
+    a: "Register with a provider account, then list your services with pricing, duration and photos. You can manage bookings and earnings from your provider dashboard.",
   },
 ];
 
@@ -64,17 +64,23 @@ export default function FAQ() {
               onClick={() =>
                 setActiveIndex(activeIndex === i ? null : i)
               }
+              aria-expanded={activeIndex === i}
+              aria-controls={`faq-panel-${i}`}
               className="w-full flex justify-between items-center p-6 text-left"
             >
               <span className="font-medium text-gray-900">
                 {faq.q}
               </span>
-              <span className="text-xl">
+              <span className="text-xl" aria-hidden="true">
                 {activeIndex === i ? "−" : "+"}
               </span>
             </button>
 
             <div
+              id={`faq-panel-${i}`}
+              role="region"
+              aria-hidden={activeIndex !== i}
+              inert={activeIndex !== i}
               ref={(el) => (contentRefs.current[i] = el)}
               className="overflow-hidden h-0 opacity-0"
             >
